@@ -31,15 +31,7 @@ public class Application {
     @Bean
     CommandLineRunner init(final AccountRepository accountRepository) {
 
-        return new CommandLineRunner() {
-
-            @Override
-            public void run(String... arg0) throws Exception {
-                accountRepository.save(new Account("user", "user"));
-
-            }
-
-        };
+        return arg0 -> accountRepository.save(new Account("user", "user"));
 
     }
 
@@ -57,20 +49,15 @@ class WebSecurityConfiguration extends GlobalAuthenticationConfigurerAdapter {
 
     @Bean
     UserDetailsService userDetailsService() {
-        return new UserDetailsService() {
-
-            @Override
-            public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-                Account account = accountRepository.findByUsername(username);
-                if(account != null) {
-                    return new User(account.getUsername(), account.getPassword(), true, true, true, true,
-                            AuthorityUtils.createAuthorityList("USER"));
-                } else {
-                    throw new UsernameNotFoundException("could not find the user '"
-                            + username + "'");
-                }
+        return username -> {
+            Account account = accountRepository.findByUsername(username);
+            if(account != null) {
+                return new User(account.getUsername(), account.getPassword(), true, true, true, true,
+                        AuthorityUtils.createAuthorityList("USER"));
+            } else {
+                throw new UsernameNotFoundException("could not find the user '"
+                        + username + "'");
             }
-
         };
     }
 }
