@@ -21,6 +21,10 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
+
+/**
+ * Spring boot Security config
+ */
 @SpringBootApplication
 public class Application {
 
