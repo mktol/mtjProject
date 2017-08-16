@@ -16,6 +16,6 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Retention(RUNTIME)
 @Constraint(validatedBy = PasswordMatchesValidator.class)
 @Documented
-public @interface ValidPassword {
+public @interface PasswordMatches {
 
 }

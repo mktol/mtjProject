@@ -1,8 +1,11 @@
 package maks.sample;
 
 import maks.sample.entity.Account;
+import maks.sample.entity.Role;
 import maks.sample.repository.AccountRepository;
+import maks.sample.repository.RoleRepository;
 import maks.sample.sec.CustomAuthProvider;
+import maks.sample.service.MyUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -10,16 +13,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.config.annotation.authentication.configurers.GlobalAuthenticationConfigurerAdapter;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 @SpringBootApplication
 public class Application {
@@ -29,13 +25,18 @@ public class Application {
     }
 
     @Bean
-    CommandLineRunner init(final AccountRepository accountRepository) {
+    CommandLineRunner init(final AccountRepository accountRepository, final RoleRepository roleRepository) {
 
         return new CommandLineRunner() {
 
             @Override
             public void run(String... arg0) throws Exception {
                 accountRepository.save(new Account("user", "user"));
+                Role role =new Role("ROLE_ROLE");
+                Role roleAdmin =new Role("ROLE_ADMIN");
+                roleRepository.save(role);
+                roleRepository.save(roleAdmin);
+
 
             }
 
@@ -44,7 +45,7 @@ public class Application {
     }
 
 }
-@Configuration
+/*@Configuration
 class WebSecurityConfiguration extends GlobalAuthenticationConfigurerAdapter {
 
     @Autowired
@@ -73,7 +74,7 @@ class WebSecurityConfiguration extends GlobalAuthenticationConfigurerAdapter {
 
         };
     }
-}
+}*/
 
 @EnableWebSecurity
 @Configuration
@@ -82,7 +83,7 @@ class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     CustomAuthProvider customAuthProvider;
 
-    @Override
+/*    @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.authorizeRequests().anyRequest().fullyAuthenticated().and().
                 httpBasic().and()
@@ -91,19 +92,49 @@ class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .authenticated()
                 .and()
                 .csrf().disable();
-    }
+    }*/
 
-    @Override
+/*    @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth.authenticationProvider(customAuthProvider);
         auth.inMemoryAuthentication()
                 .withUser("root")
                 .password("2222")
                 .roles("ADMIN", "USER");
-    }
+    }*/
 
-    @Override
+/*    @Override
     public void configure(WebSecurity web) throws Exception {
         super.configure(web);
+    }*/
+
+    @Autowired
+    private MyUserDetailsService userDetailsService;
+
+    @Override
+    protected void configure(AuthenticationManagerBuilder auth)
+            throws Exception {
+        auth.userDetailsService(userDetailsService);
+    }
+
+    //------------------------------
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http
+                .authorizeRequests()
+                .antMatchers("/api/**", "/user/registration").permitAll()
+                .anyRequest().authenticated()
+                .and()
+                .formLogin()
+                .loginPage("/login")
+                .permitAll()
+                .and()
+                .logout()
+                .permitAll();
+    }
+
+    @Autowired
+    public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
+        auth.userDetailsService(userDetailsService);
     }
 }
